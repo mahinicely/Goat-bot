@@ -1,70 +1,49 @@
-const { GoatWrapper } = require('fca-liane-utils');
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-
+const { getStreamFromURL } = global.utils;
 module.exports = {
-	config: {
-		name: "Owner",
-		author: "MAHIN",
-		role: 0,
-		shortDescription: " ",
-		longDescription: "",
-		category: "admin",
-		guide: "{pn}"
-	},
-
-	onStart: async function ({ api, event }) {
-		try {
-			const ownerInfo = {
-				name: '𝐌𝐀𝐇𝐈𝐍',
-				gender: '𝗠𝗮𝗹𝗲',
-				Birthday: '1𝟐-12-2009',
-				religion: '𝙄𝙨𝙡𝙖𝙢',
-				hobby: '𝐏𝐋𝐀𝐘𝐈𝐍𝐆 𝐆𝐀𝐌𝐄 𝐀𝐋𝐒𝐎 𝐏𝐋𝐀𝐘𝐈𝐍𝐆 𝐆𝐀𝐌𝐄 𝐖𝐈𝐓𝐇 𝐆𝐈𝐑𝐋𝐒',
-				Fb: 'https://www.facebook.com/mdmahin.2026cr7wc
-				Relationship: '𝙎𝙞𝙣𝙜𝙡𝙚',
-				Height: '5"10'
-			};
-
-			const bold = 'https://imgur.com/PA1SJH9.mp4';
-			const tmpFolderPath = path.join(__dirname, 'tmp');
-
-			if (!fs.existsSync(tmpFolderPath)) {
-				fs.mkdirSync(tmpFolderPath);
-			}
-
-			const videoResponse = await axios.get(bold, { responseType: 'arraybuffer' });
-			const videoPath = path.join(tmpFolderPath, 'owner_video.mp4');
-
-			fs.writeFileSync(videoPath, Buffer.from(videoResponse.data, 'binary'));
-
-			const response = `
-◈ 𝖮𝖶𝖭𝖤𝖱 𝖨𝖭𝖥𝖮𝖱𝖬𝖠𝖳𝖨𝖮𝖭:\n
- ~Name: ${ownerInfo.name}
- ~Gender: ${ownerInfo.gender}
- ~Birthday: ${ownerInfo.Birthday}
- ~Religion: ${ownerInfo.religion}
- ~Relationship: ${ownerInfo.Relationship}
- ~Hobby: ${ownerInfo.hobby}
- ~Fb: ${ownerInfo.Fb}
- ~Height: ${ownerInfo.Height}
-			`;
-
-			await api.sendMessage({
-				body: response,
-				attachment: fs.createReadStream(videoPath)
-			}, event.threadID, event.messageID);
-
-			fs.unlinkSync(videoPath);
-
-			api.setMessageReaction('😘', event.messageID, (err) => {}, true);
-		} catch (error) {
-			console.error('Error in ownerinfo command:', error);
-			return api.sendMessage('An error occurred while processing the command.', event.threadID);
-		}
-	}
+  config: {
+    name: "owner",
+    version: 2.1,
+    author: "Jani nh ke manger nati cng marche 🙂",
+    longDescription: "Info about bot and owner",
+    category: "Special",
+    guide: {
+      en: "{p}owner or just type owner"
+    },
+    usePrefix: false
+  },
+  onStart: async function (context) {
+    await module.exports.sendOwnerInfo(context);
+  },
+  onChat: async function ({ event, message, usersData }) {
+    const prefix = global.GoatBot.config.prefix;
+    const body = (event.body || "").toLowerCase().trim();
+    const triggers = ["owner", `${prefix}owner`];
+    if (!triggers.includes(body)) return;
+    await module.exports.sendOwnerInfo({ event, message, usersData });
+  },
+  sendOwnerInfo: async function ({ event, message, usersData }) {
+    const videoURL = "https://files.catbox.moe/nt29t4.mp4";
+    const attachment = await getStreamFromURL(videoURL);
+    const id = event.senderID;
+    const userData = await usersData.get(id);
+    const name = userData.name;
+    const mentions = [{ id, tag: name }];
+    const info = `
+⫷          O᩶w᩶n᩶e᩶r᩶ I᩶n᩶f᩶o᩶          ⫸
+┃ ☁️ 𝗡𝗮𝗺𝗲:     𝐌𝐀𝐇𝐈𝐍
+┃ ⚙️ 𝗕𝗼𝘁 𝗡𝗮𝗺𝗲:  💋𝐌𝐢𝐬𝐬 𝐌𝐚𝐤𝐢𝐦𝐚💌🦋 くめ
+┃ 🎂 𝗔𝗴𝗲:             15 +
+┃ 🧠 𝗖𝗹𝗮𝘀𝘀:           𝐒𝐞𝐜𝐫𝐞𝐭
+┃ ❤️ 𝗥𝗲𝗹𝗮𝘁𝗶𝗼𝗻:      𝐁𝐎𝐋𝐁𝐎 𝐍𝐀
+┃ ♂️ 𝗚𝗲𝗻𝗱𝗲𝗿:         𝐌𝐚𝐥𝐞
+┃ 🏠 𝗙𝗿𝗼𝗺:           𝐑𝐀𝐉𝐒𝐇𝐀𝐇𝐈
+┃ 💬 𝗠𝗲𝘀𝘀𝗲𝗻𝗴𝗲𝗿:     𝐕𝐚𝐠
+♡ 𝐓𝐡𝐚𝐧𝐤𝐬 𝐟𝐨𝐫 𝐮𝐬𝐢𝐧𝐠 𝐦𝐲 𝐛𝐨𝐭 ♡
+    `.trim();
+    message.reply({
+      body: info,
+      attachment,
+      mentions
+    });
+  }
 };
-
-const wrapper = new GoatWrapper(module.exports);
-wrapper.applyNoPrefix({ allowPrefix: true });
